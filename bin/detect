@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# bin/detect <build-dir>
+
+if [ -f $1/debs.txt ]; then
+  echo "Deb"
+  exit 0
+fi
+
+exit 1
