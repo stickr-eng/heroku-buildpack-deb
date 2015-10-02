@@ -20,6 +20,7 @@ function ensure() {
 		fi
 	fi
 
+	echo "Downloading $url"
 	curl -o "$name.deb" "$url"
 	downloaded_sha=$(sha1sum $name.deb  | cut -d ' ' -f 1)
 	if [ "$downloaded_sha" != "$sha" ]; then
@@ -34,16 +35,22 @@ cat $BUILD_DIR/debs.txt | while read line; do
 	url=$(echo $line | awk -F '|' '{print $2}')
 	sha=$(echo $line | awk -F '|' '{print $3}')
 	echo "$name : $url : $sha"
-	EXTRACT_DIR="${BUILD_DIR}/__${name}"
+	EXTRACT_DIR="tmp/debs/${name}"
 	mkdir -p "${EXTRACT_DIR}"
 	cd "${EXTRACT_DIR}"
 	ensure $name $url $sha
 	ar vx $name.deb
+	echo "Unpacking $name.deb"
 	if [ -f "data.tar.xz" ]; then
 		echo "xz archive detected"
 		tar -xJvf data.tar.xz
+		rm data.tar.xz
 	elif [ -f "data.tar.gz" ]; then
 		echo "gz archive detected"
 		tar -xzvf data.tar.gz
+		rm data.tar.gz
 	fi
+	echo "Copying binaries to ${BUILD_DIR}/bin"
+	mkdir -p ${BUILD_DIR}/bin
+	cp usr/local/bin/* ${BUILD_DIR}/bin/
 done
